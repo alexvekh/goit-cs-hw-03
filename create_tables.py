@@ -1,27 +1,4 @@
-import psycopg2
-from contextlib import contextmanager
-
-@contextmanager
-def create_connection(db_config):
-    """Create a database connection to a PostgreSQL database"""
-    conn = psycopg2.connect(**db_config)
-    try:
-        yield conn
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
-
-# Конфігурація підключення до бази даних
-db_config = {
-    'dbname': 'postgres',
-    'user': 'postgres',
-    'password': 'password12345',
-    'host': 'localhost',
-    'port': '5432'
-}
+import connect_postgres_db as cdb
 
 create_users_table_query = """
 CREATE TABLE IF NOT EXISTS users (
@@ -54,12 +31,12 @@ CREATE TABLE IF NOT EXISTS tasks (
     status_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     FOREIGN KEY (status_id) REFERENCES status (id),
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 """
 
 
-with create_connection(db_config) as conn:
+with cdb.create_connection(cdb.db_config) as conn:
     with conn.cursor() as cursor:
 
         cursor.execute(create_users_table_query)
